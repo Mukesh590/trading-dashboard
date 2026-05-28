@@ -1,26 +1,74 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #050a05;
+  --foreground: #d1fae5;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+* { box-sizing: border-box; }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-mono), 'Courier New', Courier, monospace;
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #050a05; }
+::-webkit-scrollbar-thumb { background: #1a3a2a; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #22d3ee; }
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 4px #4ade80; }
+  50% { box-shadow: 0 0 12px #4ade80, 0 0 20px rgba(74,222,128,0.4); }
+}
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+.blink { animation: blink 1.2s step-end infinite; }
+.pulse-dot { animation: pulse-glow 2s ease-in-out infinite; }
+
+.glow-cyan { text-shadow: 0 0 8px #22d3ee, 0 0 20px rgba(34,211,238,0.3); }
+.glow-green { text-shadow: 0 0 8px #4ade80, 0 0 16px rgba(74,222,128,0.3); }
+
+.terminal-card {
+  background: #0a120a;
+  border: 1px solid #1a3a1a;
+  border-radius: 2px;
+}
+.terminal-card-cyan {
+  background: #0a120a;
+  border: 1px solid rgba(34,211,238,0.2);
+  border-radius: 2px;
+}
+
+.table-row-hover:hover { background: rgba(34,211,238,0.03); }
+
+/* Scanline overlay */
+.scanlines::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
 }

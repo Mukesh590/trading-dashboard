@@ -1,64 +1,97 @@
-import Image from "next/image";
+'use client';
+import { useAlpacaData } from './hooks/useAlpacaData';
+import { calcMetrics, groupPositions } from './lib/utils';
+import Header from './components/Header';
+import MetricsRow from './components/MetricsRow';
+import PnLChart from './components/PnLChart';
+import ActivePositions from './components/ActivePositions';
+import TradeHistory from './components/TradeHistory';
+import StrategyRules from './components/StrategyRules';
+import ActivityLog from './components/ActivityLog';
 
-export default function Home() {
+function LoadingScreen() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-[#050a05] flex items-center justify-center font-mono">
+      <div className="text-center space-y-4">
+        <div className="text-cyan-400 text-2xl font-bold tracking-widest glow-cyan">
+          ⟨ ALGO TRADING BOT ⟩
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="text-green-400 text-sm">
+          INITIALIZING DASHBOARD<span className="blink">_</span>
         </div>
+        <div className="text-gray-700 text-xs mt-4 space-y-1">
+          <div>› Connecting to Alpaca Paper Trading API...</div>
+          <div>› Loading portfolio history...</div>
+          <div>› Fetching active positions...</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Dashboard() {
+  const { account, positions, orders, portfolio, loading, demo, lastUpdated, refresh } = useAlpacaData();
+
+  if (loading) return <LoadingScreen />;
+
+  const metrics      = calcMetrics(account, orders, portfolio);
+  const activeStrats = groupPositions(positions);
+
+  return (
+    <div className="min-h-screen bg-[#050a05] flex flex-col">
+      <Header
+        online={true}
+        demo={demo}
+        lastUpdated={lastUpdated}
+        onRefresh={refresh}
+      />
+
+      <main className="flex-1 px-4 py-4 space-y-4 max-w-[1600px] w-full mx-auto">
+        {/* Key Metrics */}
+        <section>
+          <div className="text-[10px] text-gray-700 tracking-widest mb-2">── PERFORMANCE OVERVIEW ──</div>
+          <MetricsRow metrics={metrics} activeCount={activeStrats.length} />
+        </section>
+
+        {/* P&L Chart */}
+        <section>
+          <div className="text-[10px] text-gray-700 tracking-widest mb-2">── PORTFOLIO CHART ──</div>
+          <PnLChart portfolio={portfolio} />
+        </section>
+
+        {/* Active Positions */}
+        <section>
+          <div className="text-[10px] text-gray-700 tracking-widest mb-2">── OPEN POSITIONS ──</div>
+          <ActivePositions positions={positions} />
+        </section>
+
+        {/* Trade History + Strategy Rules */}
+        <section className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+          <div className="xl:col-span-2">
+            <div className="text-[10px] text-gray-700 tracking-widest mb-2">── CLOSED TRADES ──</div>
+            <TradeHistory orders={orders} />
+          </div>
+          <div>
+            <div className="text-[10px] text-gray-700 tracking-widest mb-2">── STRATEGY RULES ──</div>
+            <StrategyRules />
+          </div>
+        </section>
+
+        {/* Activity Log */}
+        <section>
+          <div className="text-[10px] text-gray-700 tracking-widest mb-2">── BOT LOG ──</div>
+          <ActivityLog positions={positions} orders={orders} demo={demo} />
+        </section>
+
+        {/* Footer */}
+        <footer className="border-t border-green-900/20 pt-3 pb-6 flex flex-wrap items-center justify-between gap-2 text-[10px] text-gray-700">
+          <div>ALGO TRADING BOT v1.0.0 — PAPER TRADING MODE</div>
+          <div className="flex gap-6 flex-wrap">
+            <span>AUTO-REFRESH: 60s</span>
+            {demo && <span className="text-yellow-600">⚠ DEMO DATA — SET ALPACA KEYS TO GO LIVE</span>}
+            <span>© 2026 MUKESH</span>
+          </div>
+        </footer>
       </main>
     </div>
   );
