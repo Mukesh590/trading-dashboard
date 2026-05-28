@@ -4,8 +4,8 @@ const BASE = 'https://paper-api.alpaca.markets/v2';
 
 function headers() {
   return {
-    'APCA-API-KEY-ID': process.env.NEXT_PUBLIC_ALPACA_KEY || '',
-    'APCA-API-SECRET-KEY': process.env.NEXT_PUBLIC_ALPACA_SECRET || '',
+    'APCA-API-KEY-ID': process.env.ALPACA_API_KEY || '',
+    'APCA-API-SECRET-KEY': process.env.ALPACA_API_SECRET || '',
     'Content-Type': 'application/json',
   };
 }
