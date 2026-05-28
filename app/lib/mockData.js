@@ -1,51 +1,163 @@
 // Demo data shown when API keys are not configured
 
-function daysAgo(n) {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return d.toISOString().slice(0, 10);
-}
+const BASE = 500_000;
 
-// 30-day portfolio equity curve (options premium selling: lumpy gains)
-const BASE = 100000;
-const EQUITY = [
-  100000, 100000, 100175, 100175, 100175,
-  100175, 100420, 100420, 100420, 100420,
-  100695, 100695, 100695, 100940, 100940,
-  100940, 101245, 101245, 101245, 101580,
-  101580, 101580, 101580, 101965, 101965,
-  102280, 102280, 102280, 103040, 103680,
+// 90 trading-day delta array — realistic premium selling with two dips below $500k baseline
+const DAILY_DELTAS = [
+  // Week 1: first positions open, nothing closed yet
+  0, 0, 0, 0, 0,
+  // Week 2: first small credit realized
+  800, 0, 0, 0, 0,
+  // Week 3: solid gain then a loss that pushes below baseline
+  1200, 0, 0, 0, -3500,
+  // Week 4: slow recovery
+  0, 0, 0, 2200, 0,
+  // Week 5: more recovery
+  0, 0, 1800, 0, 0,
+  // Week 6: another position goes wrong — brief second dip
+  0, 0, 0, -2600, 0,
+  // Week 7: recovery, back above baseline for good
+  0, 0, 2800, 0, 0,
+  // Week 8
+  0, 0, 0, 0, 2200,
+  // Week 9
+  0, 0, 0, 0, 1950,
+  // Week 10
+  0, 0, 0, 0, 2400,
+  // Week 11
+  0, 0, 0, 0, 2900,
+  // Week 12: quiet week
+  0, 0, 0, 0, 0,
+  // Week 13: nice pop from multiple closures
+  2500, 0, 0, 0, 0,
+  // Week 14: moderate loss (market spike)
+  0, 0, 0, -2800, 0,
+  // Week 15: recovery
+  0, 0, 0, 1950, 0,
+  // Week 16
+  0, 2600, 0, 0, 0,
+  // Week 17
+  0, 0, 0, 2800, 0,
+  // Week 18: final stretch
+  0, 2400, 0, 0, 0,
 ];
 
-function buildTimestamps() {
-  const ts = [];
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    ts.push(Math.floor(d.getTime() / 1000));
-  }
-  return ts;
+// Build 90-day equity curve from deltas
+function buildEquityCurve() {
+  let equity = BASE;
+  return DAILY_DELTAS.map(delta => {
+    equity += delta;
+    return Math.round(equity * 100) / 100;
+  });
 }
 
-export const MOCK_PORTFOLIO = {
-  timestamp: buildTimestamps(),
-  equity: EQUITY,
-  profit_loss: EQUITY.map(e => e - BASE),
-  profit_loss_pct: EQUITY.map(e => (e - BASE) / BASE),
-  base_value: BASE,
-  timeframe: '1D',
-};
+const EQUITY_90D = buildEquityCurve();
+
+// Generate trading-day timestamps working back from today
+function getTradingDayTimestamps(count, endDate = new Date()) {
+  const timestamps = [];
+  const d = new Date(endDate);
+  d.setHours(16, 0, 0, 0); // 4 PM close
+  while (timestamps.length < count) {
+    const dow = d.getDay();
+    if (dow !== 0 && dow !== 6) timestamps.unshift(Math.floor(d.getTime() / 1000));
+    d.setDate(d.getDate() - 1);
+  }
+  return timestamps;
+}
+
+// Generate intraday 5-min bars for a single trading day
+function buildIntraday1D(baseEquity) {
+  const timestamps = [];
+  const equities = [];
+  const now = new Date();
+  const open = new Date(now);
+  open.setHours(9, 30, 0, 0);
+
+  // 78 bars: 9:30 AM → 4:00 PM (5-min intervals)
+  let equity = baseEquity;
+  // small-cap random walk within ±0.4%
+  const seed = [0, 0.0002, 0, 0.0003, -0.0001, 0.0001, 0.0002, 0, -0.0002, 0.0003,
+    0, 0.0001, -0.0001, 0.0002, 0, 0.0001, 0.0002, -0.0001, 0, 0.0002,
+    0.0001, 0, -0.0001, 0.0002, 0, 0, 0.0001, 0.0002, -0.0001, 0,
+    0.0002, 0, 0.0001, -0.0001, 0.0002, 0, 0.0001, 0, 0.0002, -0.0001,
+    0.0001, 0, 0.0002, 0, -0.0001, 0.0001, 0.0002, 0, 0, 0.0001,
+    0.0002, -0.0001, 0, 0.0001, 0.0002, 0, -0.0001, 0.0001, 0, 0.0002,
+    0.0001, 0, -0.0001, 0.0002, 0, 0.0001, 0, 0.0002, -0.0001, 0.0001,
+    0, 0.0002, 0.0001, 0, -0.0001, 0.0001, 0, 0.0001];
+
+  for (let i = 0; i < 78; i++) {
+    const t = new Date(open.getTime() + i * 5 * 60 * 1000);
+    // Only include bars up to now (or all if market is closed)
+    if (t <= now || now < open) {
+      timestamps.push(Math.floor(t.getTime() / 1000));
+      equity = equity * (1 + (seed[i] || 0));
+      equities.push(Math.round(equity * 100) / 100);
+    }
+  }
+
+  return { timestamps, equities };
+}
+
+export function getMockPortfolioData(period) {
+  const currentEquity = EQUITY_90D[EQUITY_90D.length - 1];
+
+  if (period === '1D') {
+    // Yesterday's close = second to last value, or approximate
+    const prevClose = EQUITY_90D[EQUITY_90D.length - 2] || currentEquity;
+    const { timestamps, equities } = buildIntraday1D(prevClose);
+    return {
+      timestamp: timestamps,
+      equity: equities,
+      base_value: prevClose,
+      timeframe: '5Min',
+    };
+  }
+
+  const allTimestamps = getTradingDayTimestamps(90);
+
+  if (period === '1W') {
+    const slice = EQUITY_90D.slice(-5);
+    return {
+      timestamp: allTimestamps.slice(-5),
+      equity: slice,
+      base_value: slice[0],
+      timeframe: '1D',
+    };
+  }
+
+  if (period === '1M') {
+    const slice = EQUITY_90D.slice(-22);
+    return {
+      timestamp: allTimestamps.slice(-22),
+      equity: slice,
+      base_value: slice[0],
+      timeframe: '1D',
+    };
+  }
+
+  // ALL
+  return {
+    timestamp: allTimestamps,
+    equity: EQUITY_90D,
+    base_value: BASE,
+    timeframe: '1D',
+  };
+}
+
+// Legacy export — used by useAlpacaData and calcMetrics
+export const MOCK_PORTFOLIO = getMockPortfolioData('1M');
 
 export const MOCK_ACCOUNT = {
   id: 'PA3DEMO000001',
   account_number: 'PA3DEMO000001',
   status: 'ACTIVE',
   currency: 'USD',
-  cash: '48450.00',
-  portfolio_value: '103680.00',
-  equity: '103680.00',
-  last_equity: '103040.00',
-  long_market_value: '55230.00',
+  cash: '448450.00',
+  portfolio_value: '521600.00',
+  equity: '521600.00',
+  last_equity: '519200.00',
+  long_market_value: '73150.00',
   short_market_value: '0.00',
   pattern_day_trader: false,
   trading_blocked: false,
@@ -128,7 +240,6 @@ export const MOCK_POSITIONS = [
 
 // Closed trade pairs for history
 export const MOCK_ORDERS = [
-  // Trade 1: SPXW CCS — closed 70% profit
   {
     id: 'order-001', symbol: 'SPXW260523C05200000', side: 'sell',
     status: 'filled', filled_qty: '2', filled_avg_price: '9.20',
@@ -139,7 +250,6 @@ export const MOCK_ORDERS = [
     status: 'filled', filled_qty: '2', filled_avg_price: '2.76',
     filled_at: new Date(Date.now() - 8 * 86400000).toISOString(),
   },
-  // Trade 2: SPY CSP — expired worthless
   {
     id: 'order-003', symbol: 'SPY260509P00520000', side: 'sell',
     status: 'filled', filled_qty: '2', filled_avg_price: '3.85',
@@ -150,7 +260,6 @@ export const MOCK_ORDERS = [
     status: 'filled', filled_qty: '2', filled_avg_price: '0.05',
     filled_at: new Date(Date.now() - 17 * 86400000).toISOString(),
   },
-  // Trade 3: QQQ CCS — closed 65% profit
   {
     id: 'order-005', symbol: 'QQQ260516C00475000', side: 'sell',
     status: 'filled', filled_qty: '3', filled_avg_price: '4.10',
@@ -161,7 +270,6 @@ export const MOCK_ORDERS = [
     status: 'filled', filled_qty: '3', filled_avg_price: '1.44',
     filled_at: new Date(Date.now() - 14 * 86400000).toISOString(),
   },
-  // Trade 4: SPY CSP — loss (closed early)
   {
     id: 'order-007', symbol: 'SPY260502P00515000', side: 'sell',
     status: 'filled', filled_qty: '2', filled_avg_price: '3.60',
@@ -172,7 +280,6 @@ export const MOCK_ORDERS = [
     status: 'filled', filled_qty: '2', filled_avg_price: '6.80',
     filled_at: new Date(Date.now() - 24 * 86400000).toISOString(),
   },
-  // Trade 5: SPXW CCS — expired worthless
   {
     id: 'order-009', symbol: 'SPXW260430C05150000', side: 'sell',
     status: 'filled', filled_qty: '2', filled_avg_price: '8.75',
@@ -183,7 +290,6 @@ export const MOCK_ORDERS = [
     status: 'filled', filled_qty: '2', filled_avg_price: '0.05',
     filled_at: new Date(Date.now() - 26 * 86400000).toISOString(),
   },
-  // Trade 6: SPY CCS — 50% profit
   {
     id: 'order-011', symbol: 'SPY260425C00560000', side: 'sell',
     status: 'filled', filled_qty: '2', filled_avg_price: '5.20',
@@ -194,7 +300,6 @@ export const MOCK_ORDERS = [
     status: 'filled', filled_qty: '2', filled_avg_price: '2.60',
     filled_at: new Date(Date.now() - 30 * 86400000).toISOString(),
   },
-  // Trade 7: QQQ CSP — 70% profit
   {
     id: 'order-013', symbol: 'QQQ260418P00455000', side: 'sell',
     status: 'filled', filled_qty: '3', filled_avg_price: '4.40',
@@ -205,7 +310,6 @@ export const MOCK_ORDERS = [
     status: 'filled', filled_qty: '3', filled_avg_price: '1.32',
     filled_at: new Date(Date.now() - 34 * 86400000).toISOString(),
   },
-  // Trade 8: SPXW CCS — loss
   {
     id: 'order-015', symbol: 'SPXW260411C05050000', side: 'sell',
     status: 'filled', filled_qty: '2', filled_avg_price: '7.60',
@@ -216,7 +320,6 @@ export const MOCK_ORDERS = [
     status: 'filled', filled_qty: '2', filled_avg_price: '14.20',
     filled_at: new Date(Date.now() - 42 * 86400000).toISOString(),
   },
-  // Trade 9: SPY CSP — expired
   {
     id: 'order-017', symbol: 'SPY260404P00505000', side: 'sell',
     status: 'filled', filled_qty: '2', filled_avg_price: '3.20',
@@ -227,7 +330,6 @@ export const MOCK_ORDERS = [
     status: 'filled', filled_qty: '2', filled_avg_price: '0.05',
     filled_at: new Date(Date.now() - 44 * 86400000).toISOString(),
   },
-  // Trade 10: QQQ CCS — 60% profit
   {
     id: 'order-019', symbol: 'QQQ260328C00465000', side: 'sell',
     status: 'filled', filled_qty: '2', filled_avg_price: '4.85',

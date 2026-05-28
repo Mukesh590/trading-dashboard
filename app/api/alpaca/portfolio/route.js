@@ -10,12 +10,23 @@ function headers() {
   };
 }
 
-export async function GET() {
+const PERIOD_PARAMS = {
+  '1D': { period: '1D', timeframe: '5Min' },
+  '1W': { period: '1W', timeframe: '1H' },
+  '1M': { period: '1M', timeframe: '1D' },
+  'ALL': { period: '5A', timeframe: '1D' },
+};
+
+export async function GET(request) {
+  const { searchParams } = new URL(request.url);
+  const zoom = searchParams.get('period') || '1M';
+  const { period, timeframe } = PERIOD_PARAMS[zoom] ?? PERIOD_PARAMS['1M'];
+
   try {
-    const res = await fetch(`${BASE}/account/portfolio/history?period=1M&timeframe=1D`, {
-      headers: headers(),
-      cache: 'no-store',
-    });
+    const res = await fetch(
+      `${BASE}/account/portfolio/history?period=${period}&timeframe=${timeframe}&extended_hours=false`,
+      { headers: headers(), cache: 'no-store' }
+    );
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });
   } catch (err) {

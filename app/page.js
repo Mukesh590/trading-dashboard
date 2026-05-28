@@ -56,7 +56,7 @@ export default function Dashboard() {
         {/* P&L Chart */}
         <section>
           <div className="text-[10px] text-gray-700 tracking-widest mb-2">── PORTFOLIO CHART ──</div>
-          <PnLChart portfolio={portfolio} />
+          <PnLChart demo={demo} />
         </section>
 
         {/* Active Positions */}

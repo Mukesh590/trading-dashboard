@@ -233,7 +233,7 @@ export function pairOrders(orders) {
 export function calcMetrics(account, orders, portfolio) {
   const equity    = parseFloat(account?.equity      || 0);
   const lastEquity = parseFloat(account?.last_equity || equity);
-  const base      = parseFloat(portfolio?.base_value || 100000);
+  const base      = parseFloat(portfolio?.base_value || 500_000);
 
   const totalPnL    = equity - base;
   const totalPnLPct = base > 0 ? (totalPnL / base) * 100 : 0;
