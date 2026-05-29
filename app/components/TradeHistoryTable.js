@@ -60,7 +60,7 @@ export default function TradeHistoryTable({ orders }) {
       {/* Header */}
       <div className="px-4 pt-3 pb-2 border-b border-white/[0.04] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-3">
-          <span className="section-label">TRADE HISTORY</span>
+          <span className="section-label">EXECUTION RECORD</span>
           <span className="text-[9px] text-slate-600 tabular-nums">{total} trades</span>
           <span className={`text-[9px] tabular-nums ${wins/total >= 0.6 ? 'text-[#00ff88]' : 'text-[#ff3366]'}`}>
             {total > 0 ? ((wins/total)*100).toFixed(0) : 0}% win

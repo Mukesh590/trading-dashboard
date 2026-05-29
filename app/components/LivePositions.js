@@ -1,9 +1,16 @@
 'use client';
 import { useState } from 'react';
-import { CaretDown, CaretUp, Clock, TrendDown } from '@phosphor-icons/react';
+import { CaretDown, CaretUp, Clock, TrendDown, Warning } from '@phosphor-icons/react';
 import { statusColor } from '../lib/utils';
 
 const STRATEGY_SHORT = { 'Call Credit Spread': 'CCS', 'Cash Secured Put': 'CSP', 'Naked Call': 'NC' };
+
+// Tickers with upcoming earnings (within 14 days)
+const EARNINGS_PROXIMITY = { SPXW: 7, QQQ: 12 };
+
+function hasEarningsRisk(symbol) {
+  return EARNINGS_PROXIMITY[symbol] !== undefined && EARNINGS_PROXIMITY[symbol] <= 14;
+}
 
 const MOCK_GREEKS = {
   delta: -0.22,
@@ -32,6 +39,8 @@ function PositionCard({ pos }) {
   const pnlColor = isProfit ? 'text-[#00ff88]' : 'text-[#ff3366]';
   const pnlBg    = isProfit ? 'rgba(0,255,136,0.06)' : 'rgba(255,51,102,0.06)';
   const pnlBorder = isProfit ? 'rgba(0,255,136,0.2)' : 'rgba(255,51,102,0.2)';
+  const earningsRisk = hasEarningsRisk(pos.symbol);
+  const earningsDte  = EARNINGS_PROXIMITY[pos.symbol];
 
   const stratShort = STRATEGY_SHORT[pos.strategy] || pos.strategy;
   const greeks = MOCK_GREEKS;
@@ -40,8 +49,8 @@ function PositionCard({ pos }) {
 
   return (
     <div
-      className="panel rounded-sm overflow-hidden"
-      style={{ borderColor: isProfit ? 'rgba(0,255,136,0.15)' : 'rgba(255,51,102,0.15)' }}
+      className={`panel rounded-sm overflow-hidden ${earningsRisk ? 'earnings-risk' : ''}`}
+      style={{ borderColor: earningsRisk ? 'rgba(255,51,102,0.3)' : isProfit ? 'rgba(0,255,136,0.15)' : 'rgba(255,51,102,0.15)' }}
     >
       {/* Header row */}
       <div className="px-3 pt-3 pb-2">
@@ -60,6 +69,16 @@ function PositionCard({ pos }) {
                 style={{ color: '#f59e0b', borderColor: 'rgba(245,158,11,0.4)', background: 'rgba(245,158,11,0.06)' }}
               >
                 CLOSE TARGET
+              </span>
+            )}
+            {earningsRisk && (
+              <span
+                className="flex items-center gap-1 text-[8px] px-1.5 py-0.5 rounded-sm border font-medium tracking-wider"
+                style={{ color: '#ff3366', borderColor: 'rgba(255,51,102,0.4)', background: 'rgba(255,51,102,0.06)' }}
+                title={`Earnings proximity risk: ${earningsDte} days`}
+              >
+                <Warning size={8} aria-hidden="true" />
+                EARNINGS RISK {earningsDte}d
               </span>
             )}
           </div>
@@ -183,8 +202,8 @@ export default function LivePositions({ positions }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="section-label">LIVE POSITIONS</span>
-        <span className="text-[9px] text-slate-500 tabular-nums">{strats.length} active</span>
+        <span className="section-label">CURRENT EXPOSURE</span>
+        <span className="text-[9px] text-slate-500 tabular-nums">{strats.length} active positions</span>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         {strats.map(pos => (

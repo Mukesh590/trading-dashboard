@@ -124,9 +124,29 @@ const QUANT_METRICS = [
   { label: 'RECOVERY FACTOR', value: '3.7x',  color: 'text-[#00ff88]' },
 ];
 
-export default function StrategyDNA({ orders }) {
+export default function StrategyDNA({ orders, compact = false }) {
   const best = { symbol: 'SPXW', pnl: 3500, pct: 100 };
   const worst = { symbol: 'SPY', pnl: -640, pct: -18 };
+  if (compact) {
+    return (
+      <div className="panel h-full flex flex-col">
+        <div className="px-4 pt-3 pb-2 border-b border-white/[0.04]">
+          <span className="section-label">STRATEGY DNA</span>
+        </div>
+        <div className="flex-1 px-4 py-3 flex flex-col gap-3">
+          <WinRateBars />
+          <div className="grid grid-cols-2 gap-2">
+            {QUANT_METRICS.map(m => (
+              <div key={m.label} className="bg-white/[0.02] rounded-sm px-2 py-1.5">
+                <div className="text-[8px] text-slate-600 tracking-[0.1em] mb-0.5">{m.label}</div>
+                <div className={`text-[11px] tabular-nums font-medium ${m.color}`}>{m.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="panel h-full flex flex-col">

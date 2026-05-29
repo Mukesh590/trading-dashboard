@@ -1,6 +1,20 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
-import { ArrowClockwise, GithubLogo, Broadcast, Clock, ChartLine } from '@phosphor-icons/react';
+import { ArrowClockwise, GithubLogo, Clock, ChartLine } from '@phosphor-icons/react';
+import { useDashboard, OPERATOR_MODES } from '../context/DashboardContext';
+
+const MODE_LABELS = {
+  EXECUTION: 'EXEC',
+  RESEARCH:  'RSCH',
+  RISK:      'RISK',
+  WAR_ROOM:  'WAR',
+};
+const MODE_COLORS = {
+  EXECUTION: { active: '#00d4ff', border: 'rgba(0,212,255,0.35)' },
+  RESEARCH:  { active: '#00ff88', border: 'rgba(0,255,136,0.35)' },
+  RISK:      { active: '#ff3366', border: 'rgba(255,51,102,0.35)' },
+  WAR_ROOM:  { active: '#f59e0b', border: 'rgba(245,158,11,0.35)' },
+};
 
 function useMarketStatus() {
   const [status, setStatus] = useState('CLOSED');
@@ -70,6 +84,7 @@ const STATUS_COLORS = {
 export default function TerminalHeader({ metrics, demo, lastUpdated, onRefresh, spinning }) {
   const [clock, setClock] = useState('');
   const marketStatus = useMarketStatus();
+  const { operatorMode, setOperatorMode } = useDashboard();
 
   useEffect(() => {
     function tick() {
@@ -110,10 +125,10 @@ export default function TerminalHeader({ metrics, demo, lastUpdated, onRefresh, 
 
           <div className="h-3 w-px bg-white/10" aria-hidden="true" />
 
-          {/* Bot online */}
+          {/* Autonomous engine status */}
           <div className="flex items-center gap-1.5 border border-[rgba(0,255,136,0.25)] px-2 py-0.5 rounded-sm bg-[rgba(0,255,136,0.04)]">
             <span className="status-dot bg-[#00ff88] pulse-dot-green" aria-hidden="true" />
-            <span className="text-[9px] font-semibold tracking-[0.15em] text-[#00ff88]">BOT ONLINE</span>
+            <span className="text-[9px] font-semibold tracking-[0.15em] text-[#00ff88]">AUTONOMOUS ENGINE ACTIVE</span>
           </div>
 
           {demo && (
@@ -131,8 +146,35 @@ export default function TerminalHeader({ metrics, demo, lastUpdated, onRefresh, 
           </span>
         </div>
 
-        {/* Right: clock + market + controls */}
+        {/* Right: operator modes + clock + market + controls */}
         <div className="flex items-center gap-3 text-[10px]">
+          {/* Operator mode toggle */}
+          <div
+            className="flex items-center gap-0.5 border border-white/[0.06] rounded-sm p-0.5"
+            role="group"
+            aria-label="Operator mode selection"
+          >
+            {OPERATOR_MODES.map(mode => {
+              const active = operatorMode === mode;
+              const mc = MODE_COLORS[mode];
+              return (
+                <button
+                  key={mode}
+                  onClick={() => setOperatorMode(mode)}
+                  aria-pressed={active}
+                  aria-label={`Switch to ${mode.replace('_', ' ')} mode`}
+                  className="px-2 py-0.5 rounded-sm text-[8px] tracking-[0.1em] transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1"
+                  style={active
+                    ? { color: mc.active, background: mc.active + '15', borderColor: mc.border }
+                    : { color: '#475569' }
+                  }
+                >
+                  {MODE_LABELS[mode]}
+                </button>
+              );
+            })}
+          </div>
+
           <span
             className={`border px-2 py-0.5 rounded-sm font-semibold tracking-[0.12em] ${STATUS_COLORS[marketStatus] ?? STATUS_COLORS['CLOSED']}`}
           >
@@ -175,16 +217,16 @@ export default function TerminalHeader({ metrics, demo, lastUpdated, onRefresh, 
       {/* Metrics strip */}
       <div className="border-t border-white/[0.04] px-4 py-1.5 max-w-[1800px] mx-auto">
         <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-[10px]">
-          {/* P&L trio */}
-          <MetricChip label="REALIZED" value={realized} isMonetary />
-          <MetricChip label="UNREALIZED" value={unreal} isMonetary />
-          <MetricChip label="TOTAL P&L" value={total} isMonetary bold />
+          {/* Alpha capture trio */}
+          <MetricChip label="REALIZED ALPHA" value={realized} isMonetary />
+          <MetricChip label="UNREALIZED ALPHA" value={unreal} isMonetary />
+          <MetricChip label="TOTAL ALPHA CAPTURE" value={total} isMonetary bold />
 
           <div className="h-3 w-px bg-white/[0.06] hidden sm:block" aria-hidden="true" />
 
           {/* Quant metrics */}
           <MetricChip
-            label="WIN RATE"
+            label="POS. EXPECTANCY RATE"
             value={`${winRate.toFixed(1)}%`}
             color={winRate >= 50 ? 'text-[#00ff88]' : 'text-[#ff3366]'}
           />
@@ -194,7 +236,7 @@ export default function TerminalHeader({ metrics, demo, lastUpdated, onRefresh, 
             color={sharpe >= 1 ? 'text-[#00d4ff]' : 'text-amber-400'}
           />
           <MetricChip
-            label="MAX DD"
+            label="MAX DRAWDOWN"
             value={`-${maxDD.toFixed(1)}%`}
             color="text-[#ff3366]"
           />

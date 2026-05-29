@@ -235,6 +235,105 @@ body {
   animation: fade-in-up 0.4s cubic-bezier(0.16,1,0.3,1) both;
 }
 
+/* ── OPERATOR MODES ─────────────────────────────────────────────── */
+
+/* EXECUTION: expose panels front-and-center */
+.mode-execution .tier-analytics { opacity: 0.7; }
+.mode-execution .tier-exposure   { opacity: 1; }
+
+/* RESEARCH: analytics at full, exposure subdued */
+.mode-research .tier-exposure   { opacity: 0.65; }
+.mode-research .tier-analytics  { opacity: 1; }
+.mode-research .tier-command    { opacity: 0.65; }
+
+/* RISK: risk panels dominant */
+.mode-risk .tier-exposure        { opacity: 0.65; }
+.mode-risk .tier-analytics       { opacity: 0.65; }
+.mode-risk .tier-command         { opacity: 1; }
+.mode-risk .risk-focus           { box-shadow: 0 0 0 1px rgba(255,51,102,0.3); }
+
+/* WAR ROOM: everything at full opacity / max density */
+.mode-war-room .tier-exposure,
+.mode-war-room .tier-analytics,
+.mode-war-room .tier-command,
+.mode-war-room .tier-situational { opacity: 1; }
+
+/* ── STRESS / DEFENSIVE POSTURE ─────────────────────────────────── */
+
+.stress-mode {
+  --bg-base: #0e0b08;
+  --bg-panel: rgba(22, 15, 8, 0.88);
+  --border-subtle: rgba(245, 158, 11, 0.07);
+}
+
+.stress-mode .panel {
+  border-color: rgba(245, 158, 11, 0.1);
+}
+
+.stress-mode .panel-cyan {
+  border-color: rgba(245, 158, 11, 0.18);
+}
+
+@keyframes defensive-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.8; }
+}
+
+.defensive-banner {
+  animation: defensive-pulse 3s ease-in-out infinite;
+}
+
+/* ── SILENCE MODE (no positions, low VIX) ───────────────────────── */
+
+.silence-overlay {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  z-index: 10;
+}
+
+/* ── EARNINGS PROXIMITY RISK ────────────────────────────────────── */
+
+@keyframes earnings-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255,51,102,0.2); }
+  50%       { box-shadow: 0 0 8px rgba(255,51,102,0.35), 0 0 0 1px rgba(255,51,102,0.4); }
+}
+
+.earnings-risk {
+  animation: earnings-pulse 2.5s ease-in-out infinite;
+}
+
+/* ── HOVER INTELLIGENCE TOOLTIPS ────────────────────────────────── */
+
+.intel-tooltip {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  z-index: 50;
+  transition: opacity 0.18s ease, visibility 0.18s ease;
+  pointer-events: none;
+}
+
+.intel-anchor:hover .intel-tooltip,
+.intel-anchor:focus-within .intel-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* ── TIER TRANSITIONS ────────────────────────────────────────────── */
+
+.tier-command,
+.tier-situational,
+.tier-exposure,
+.tier-analytics {
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

@@ -66,7 +66,7 @@ export default function AlphaStream({ positions, orders, demo }) {
   return (
     <div className="panel h-full flex flex-col">
       <div className="px-4 pt-3 pb-2 border-b border-white/[0.04] flex items-center justify-between">
-        <span className="section-label">ALPHA STREAM</span>
+        <span className="section-label">EXECUTION LOG - ALPHA STREAM</span>
         <div className="flex items-center gap-1.5">
           <span className="status-dot bg-[#00ff88] pulse-dot-green" aria-hidden="true" />
           <span className="text-[8px] text-slate-600 tracking-widest">LIVE</span>
