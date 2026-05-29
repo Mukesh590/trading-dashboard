@@ -1,5 +1,6 @@
 'use client';
 import { fmt$, fmtPct, colorPnl } from '../lib/utils';
+import { MAX_POSITIONS } from '../lib/config';
 
 function MetricCard({ label, value, sub, valueClass = 'text-cyan-400', icon }) {
   return (
@@ -14,7 +15,7 @@ function MetricCard({ label, value, sub, valueClass = 'text-cyan-400', icon }) {
 export default function MetricsRow({ metrics, activeCount = 0 }) {
   if (!metrics) return null;
 
-  const { totalPnL, totalPnLPct, todayPnL, todayPnLPct, winRate, totalTrades, equity } = metrics;
+  const { realizedPnL, unrealizedPnL, totalPnL, totalPnLPct, todayPnL, todayPnLPct, winRate, totalTrades, equity } = metrics;
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -23,6 +24,20 @@ export default function MetricsRow({ metrics, activeCount = 0 }) {
         value={`$${parseFloat(equity || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
         valueClass="text-cyan-400"
         icon="◈"
+      />
+      <MetricCard
+        label="Realized P&amp;L"
+        value={fmt$(realizedPnL)}
+        sub="closed trades"
+        valueClass={colorPnl(realizedPnL)}
+        icon="✓"
+      />
+      <MetricCard
+        label="Unrealized P&amp;L"
+        value={fmt$(unrealizedPnL)}
+        sub="open positions"
+        valueClass={colorPnl(unrealizedPnL)}
+        icon="◌"
       />
       <MetricCard
         label="Total P&amp;L"
@@ -46,17 +61,10 @@ export default function MetricsRow({ metrics, activeCount = 0 }) {
         icon="✦"
       />
       <MetricCard
-        label="Total Trades"
-        value={totalTrades || '0'}
-        sub="closed positions"
-        valueClass="text-cyan-400"
-        icon="≡"
-      />
-      <MetricCard
         label="Active Positions"
         value={activeCount}
-        sub={`of 3 max`}
-        valueClass={activeCount >= 3 ? 'text-yellow-400' : 'text-green-400'}
+        sub={`of ${MAX_POSITIONS} max`}
+        valueClass={activeCount >= MAX_POSITIONS ? 'text-yellow-400' : 'text-green-400'}
         icon="◉"
       />
     </div>

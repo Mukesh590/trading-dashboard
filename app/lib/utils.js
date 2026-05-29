@@ -230,21 +230,27 @@ export function pairOrders(orders) {
 }
 
 // Calculate metrics from raw Alpaca data
-export function calcMetrics(account, orders, portfolio) {
-  const equity    = parseFloat(account?.equity      || 0);
+export function calcMetrics(account, orders, portfolio, positions) {
+  const equity     = parseFloat(account?.equity      || 0);
   const lastEquity = parseFloat(account?.last_equity || equity);
-  const base      = parseFloat(portfolio?.base_value || 500_000);
+  const base       = parseFloat(portfolio?.base_value || 500_000);
 
-  const totalPnL    = equity - base;
-  const totalPnLPct = base > 0 ? (totalPnL / base) * 100 : 0;
   const todayPnL    = equity - lastEquity;
   const todayPnLPct = lastEquity > 0 ? (todayPnL / lastEquity) * 100 : 0;
 
-  const trades = pairOrders(orders);
-  const wins   = trades.filter(t => t.won).length;
+  const trades      = pairOrders(orders);
+  const realizedPnL = trades.reduce((sum, t) => sum + t.pnl, 0);
+
+  const openStrats    = groupPositions(positions || []);
+  const unrealizedPnL = openStrats.reduce((sum, p) => sum + p.pnl, 0);
+
+  const totalPnL    = realizedPnL + unrealizedPnL;
+  const totalPnLPct = base > 0 ? (totalPnL / base) * 100 : 0;
+
+  const wins    = trades.filter(t => t.won).length;
   const winRate = trades.length > 0 ? (wins / trades.length) * 100 : 0;
 
-  return { equity, totalPnL, totalPnLPct, todayPnL, todayPnLPct, winRate, totalTrades: trades.length };
+  return { equity, realizedPnL, unrealizedPnL, totalPnL, totalPnLPct, todayPnL, todayPnLPct, winRate, totalTrades: trades.length };
 }
 
 // Build chart dataset from Alpaca portfolio history

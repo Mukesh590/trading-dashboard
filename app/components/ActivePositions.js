@@ -1,5 +1,6 @@
 'use client';
 import { groupPositions, fmtRaw$, fmt$, fmtPct, colorPnl, statusColor } from '../lib/utils';
+import { MAX_POSITIONS } from '../lib/config';
 
 const TH = ({ children, right }) => (
   <th className={`py-2 px-3 text-[10px] font-normal tracking-widest text-gray-600 border-b border-green-900/30 ${right ? 'text-right' : 'text-left'}`}>
@@ -20,7 +21,7 @@ export default function ActivePositions({ positions }) {
     <div className="terminal-card">
       <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-green-900/30">
         <div className="text-xs text-cyan-400 tracking-widest font-bold">◉ ACTIVE POSITIONS</div>
-        <span className="text-[10px] text-gray-600">{strategies.length} / 3 SLOTS</span>
+        <span className="text-[10px] text-gray-600">{strategies.length} / {MAX_POSITIONS} SLOTS</span>
       </div>
 
       {strategies.length === 0 ? (

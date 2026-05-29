@@ -34,7 +34,7 @@ export default function Dashboard() {
 
   if (loading) return <LoadingScreen />;
 
-  const metrics      = calcMetrics(account, orders, portfolio);
+  const metrics      = calcMetrics(account, orders, portfolio, positions);
   const activeStrats = groupPositions(positions);
 
   return (
