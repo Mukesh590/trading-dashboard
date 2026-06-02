@@ -34,11 +34,6 @@ export default function Header({ online = true, demo = false, lastUpdated = null
             </span>
           </div>
 
-          {demo && (
-            <span className="text-xs text-yellow-400 border border-yellow-400/30 px-2 py-1 bg-yellow-400/5">
-              DEMO MODE
-            </span>
-          )}
         </div>
 
         {/* Right side */}

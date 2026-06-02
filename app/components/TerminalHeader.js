@@ -131,11 +131,6 @@ export default function TerminalHeader({ metrics, demo, lastUpdated, onRefresh, 
             <span className="text-[9px] font-semibold tracking-[0.15em] text-[#00ff88]">AUTONOMOUS ENGINE ACTIVE</span>
           </div>
 
-          {demo && (
-            <span className="text-[9px] tracking-[0.12em] text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-sm bg-amber-500/5">
-              DEMO MODE
-            </span>
-          )}
         </div>
 
         {/* Center: portfolio value */}

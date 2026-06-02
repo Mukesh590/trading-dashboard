@@ -155,7 +155,6 @@ function DashboardInner({ metrics, strategies, positions, orders, demo, lastUpda
             <span>MODE: {operatorMode.replace('_', ' ')}</span>
             <span>VIX: {VIX}</span>
             <span>AUTO-REFRESH 60s</span>
-            {demo && <span className="text-amber-800">DEMO - SET ALPACA KEYS TO GO LIVE</span>}
           </div>
         </footer>
       </main>
