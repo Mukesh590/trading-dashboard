@@ -1,0 +1,20 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]: QUANT TERMINAL
+    - generic [ref=e5]: INITIALIZING_
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]: ">"
+        - generic [ref=e9]: Connecting to Alpaca API...
+      - generic [ref=e10]:
+        - generic [ref=e11]: ">"
+        - generic [ref=e12]: Loading portfolio history...
+      - generic [ref=e13]:
+        - generic [ref=e14]: ">"
+        - generic [ref=e15]: Fetching live positions...
+      - generic [ref=e16]:
+        - generic [ref=e17]: ">"
+        - generic [ref=e18]: Calculating risk metrics...
+  - button "Open Next.js Dev Tools" [ref=e24] [cursor=pointer]:
+    - img [ref=e25]
+  - alert [ref=e28]

@@ -1,0 +1,23 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]: QUANT TERMINAL
+    - generic [ref=e5]: INITIALIZING INTELLIGENCE INFRASTRUCTURE_
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]: ">"
+        - generic [ref=e9]: Connecting to Alpaca execution layer...
+      - generic [ref=e10]:
+        - generic [ref=e11]: ">"
+        - generic [ref=e12]: Loading portfolio history...
+      - generic [ref=e13]:
+        - generic [ref=e14]: ">"
+        - generic [ref=e15]: Calibrating volatility framework...
+      - generic [ref=e16]:
+        - generic [ref=e17]: ">"
+        - generic [ref=e18]: Initializing regime detection...
+      - generic [ref=e19]:
+        - generic [ref=e20]: ">"
+        - generic [ref=e21]: Syncing proprietary signal stack...
+  - button "Open Next.js Dev Tools" [ref=e27] [cursor=pointer]:
+    - img [ref=e28]
+  - alert [ref=e31]
