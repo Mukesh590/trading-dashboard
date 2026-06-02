@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { CaretDown, CaretUp, Clock, TrendDown, Warning } from '@phosphor-icons/react';
 import { statusColor } from '../lib/utils';
+import { MAX_POSITIONS, MAX_INTRADAY_POSITIONS } from '../lib/config';
 
 const STRATEGY_SHORT = { 'Call Credit Spread': 'CCS', 'Cash Secured Put': 'CSP', 'Naked Call': 'NC' };
 
@@ -185,7 +186,7 @@ function PositionCard({ pos }) {
   );
 }
 
-export default function LivePositions({ positions }) {
+export default function LivePositions({ positions, todayCount = 0 }) {
   if (!positions?.length) {
     return (
       <div className="panel p-6 flex items-center justify-center">
@@ -203,7 +204,9 @@ export default function LivePositions({ positions }) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <span className="section-label">CURRENT EXPOSURE</span>
-        <span className="text-[9px] text-slate-500 tabular-nums">{strats.length} active positions</span>
+        <span className="text-[9px] text-slate-500 tabular-nums">
+          {strats.length}/{MAX_POSITIONS} holds | {todayCount}/{MAX_INTRADAY_POSITIONS} today
+        </span>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         {strats.map(pos => (

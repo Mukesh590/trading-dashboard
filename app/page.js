@@ -64,7 +64,7 @@ function DefensiveBanner({ drawdownPct }) {
 }
 
 /* ── Inner dashboard (needs context) ───────────────────────────── */
-function DashboardInner({ metrics, strategies, positions, orders, demo, lastUpdated, onRefresh, spinning }) {
+function DashboardInner({ metrics, strategies, positions, orders, demo, lastUpdated, onRefresh, spinning, todayCount }) {
   const { operatorMode, underStress, drawdownPct, hasPositions } = useDashboard();
   const modeClass = `mode-${operatorMode.toLowerCase().replace('_', '-')}`;
 
@@ -104,7 +104,7 @@ function DashboardInner({ metrics, strategies, positions, orders, demo, lastUpda
               <PortfolioChart demo={demo} />
             </div>
             <div className="risk-focus">
-              <RiskSentinel metrics={metrics} />
+              <RiskSentinel metrics={metrics} positions={strategies} todayCount={todayCount} />
             </div>
           </div>
           <div className="grid grid-cols-1 xl:grid-cols-[1fr_240px_240px] gap-2">
@@ -118,7 +118,7 @@ function DashboardInner({ metrics, strategies, positions, orders, demo, lastUpda
         <div className="tier-exposure space-y-2">
           <TierLabel label="CURRENT EXPOSURE" />
           {hasPositions
-            ? <LivePositions positions={strategies} />
+            ? <LivePositions positions={strategies} todayCount={todayCount} />
             : <StrategicSilence />
           }
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-2">
@@ -208,6 +208,12 @@ export default function Dashboard() {
   const metrics    = calcMetrics(account, orders, portfolio, positions);
   const strategies = groupPositions(positions);
 
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayCount = orders.filter(o =>
+    o.side === 'sell' && o.status === 'filled' && o.filled_at && new Date(o.filled_at) >= todayStart
+  ).length;
+
   async function handleRefresh() {
     setSpinning(true);
     await refresh();
@@ -225,6 +231,7 @@ export default function Dashboard() {
         lastUpdated={lastUpdated}
         onRefresh={handleRefresh}
         spinning={spinning}
+        todayCount={todayCount}
       />
     </DashboardProvider>
   );

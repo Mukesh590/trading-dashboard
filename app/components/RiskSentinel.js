@@ -1,10 +1,11 @@
 'use client';
 import { useState } from 'react';
 import { ShieldCheck, ShieldWarning, ShieldSlash, Prohibit } from '@phosphor-icons/react';
+import { MAX_POSITIONS, MAX_INTRADAY_POSITIONS } from '../lib/config';
 
 const DD_LIMIT = 2.5;
 
-export default function RiskSentinel({ metrics }) {
+export default function RiskSentinel({ metrics, positions = [], todayCount = 0 }) {
   const [killConfirm, setKillConfirm] = useState(false);
 
   const equity     = parseFloat(metrics?.equity ?? 521600);
@@ -30,6 +31,10 @@ export default function RiskSentinel({ metrics }) {
   }[execHealth];
 
   const ddColor = ddUsed < 50 ? '#00ff88' : ddUsed < 80 ? '#f59e0b' : '#ff3366';
+
+  const holdCount = positions.length;
+  const holdsColor = holdCount < MAX_POSITIONS ? 'text-[#00ff88]' : holdCount === MAX_POSITIONS ? 'text-amber-400' : 'text-[#ff3366]';
+  const intradayColor = todayCount < MAX_INTRADAY_POSITIONS ? 'text-[#00ff88]' : todayCount === MAX_INTRADAY_POSITIONS ? 'text-amber-400' : 'text-[#ff3366]';
 
   return (
     <div className="panel panel-red h-full flex flex-col">
@@ -86,14 +91,20 @@ export default function RiskSentinel({ metrics }) {
             color={vixBreaker ? 'text-[#00ff88]' : 'text-[#ff3366]'}
           />
           <StatusRow
-            label="POSITION CAP"
-            value={`${(metrics?.totalTrades ?? 0) > 0 ? '3/3' : '0/3'}`}
-            color="text-amber-400"
+            label="HOLDS CAP"
+            value={`${holdCount}/${MAX_POSITIONS}`}
+            color={holdsColor}
+          />
+          <StatusRow
+            label="INTRADAY CAP"
+            value={`${todayCount}/${MAX_INTRADAY_POSITIONS}`}
+            color={intradayColor}
           />
           <StatusRow
             label="TODAY P&L"
             value={`${todayPnL >= 0 ? '+' : ''}$${Math.abs(todayPnL).toLocaleString('en-US', { maximumFractionDigits: 0 })}`}
             color={todayPnL >= 0 ? 'text-[#00ff88]' : 'text-[#ff3366]'}
+            span
           />
         </div>
 
@@ -135,9 +146,9 @@ export default function RiskSentinel({ metrics }) {
   );
 }
 
-function StatusRow({ label, value, color }) {
+function StatusRow({ label, value, color, span }) {
   return (
-    <div className="flex flex-col gap-0.5 bg-white/[0.02] rounded-sm px-2 py-1.5">
+    <div className={`flex flex-col gap-0.5 bg-white/[0.02] rounded-sm px-2 py-1.5 ${span ? 'col-span-2' : ''}`}>
       <span className="text-[8px] text-slate-600 tracking-[0.15em]">{label}</span>
       <span className={`text-[10px] font-medium tabular-nums ${color}`}>{value}</span>
     </div>
